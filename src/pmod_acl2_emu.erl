@@ -56,11 +56,11 @@ init() -> default().
 
 message(State, {spi, ?SPI_MODE, <<?WRITE_REGISTER, Reg, Value>>})
   when Reg >= ?SOFT_RESET andalso Reg =< ?SELF_TEST ->
-    NewState = bitmap_module:set_bits(State, Reg*8, <<Value>>),
+    NewState = bit_map_func(set_bits, [State, Reg*8, <<Value>>]),
     {<<0, 0, 0>>, NewState};
 message(State, {spi, ?SPI_MODE, <<?READ_REGISTER, Reg, RespBytes/binary>>}) ->
     NewState = shake(State),
-    Result = bitmap_module:get_bits(NewState, Reg*8, bit_size(RespBytes)),
+    Result = bit_map_func(get_bits, [NewState, Reg*8, bit_size(RespBytes)]),
     {<<0, 0, Result/binary>>, NewState};
 message(State, {spi, ?SPI_MODE, _Command}) ->
     {<<0, 0, 0>>, State}.
@@ -70,8 +70,12 @@ broadcast(State, _Message) ->
 
 %--- Internal ------------------------------------------------------------------
 
+bit_map_func(Fun, Args) ->
+  BitMapModule = application:get_env(grisp_emu, bitmap_module, []),
+  apply(BitMapModule, Fun, Args).
+
 shake(State) ->
-    case bitmap_module:get_bits(State, ?POWER_CTL*8, 8) of
+    case bit_map_func(get_bits, [State, ?POWER_CTL*8, 8]) of
         <<_:6, ?MEASUREMENT_MODE:2>> ->
             lists:foldl(fun({ShortReg, LongReg}, S) ->
                 shake_axis(S, ShortReg, LongReg)
@@ -86,9 +90,9 @@ shake(State) ->
 
 shake_axis(State, ShortReg, LongReg) ->
     <<Low, High>> = Long = axis_data_12bit(),
-    Short = bitmap_module:get_bits(<<High, Low>>, 4, 8),
-    NewState = bitmap_module:set_bits(State, ShortReg*8, Short),
-    bitmap_module:set_bits(NewState, LongReg*8, Long).
+    Short = bit_map_func(get_bits, [<<High, Low>>, 4, 8])
+    NewState = bit_map_func(set_bits, [State, ShortReg*8, Short]),
+    bit_map_func(set_bits, [NewState, LongReg*8, Long]).
 
 axis_data_12bit() ->
     <<MSB:1, High:3, Low:8, _:4>> = crypto:strong_rand_bytes(2),

@@ -102,6 +102,10 @@ broadcast(State, {gpio, jumper_5, get}) ->
 
 %--- Internal ------------------------------------------------------------------
 
+bit_map_func(Fun, Args) ->
+  BitMapModule = application:get_env(grisp_emu, bitmap_module, []),
+  apply(BitMapModule, Fun, Args).
+
 component(#state{bitmaps = Bitmaps} = State, Component, Req) ->
     {Result, Bitmap} = call(Component, maps:get(Component, Bitmaps), Req),
     {Result, State#state{bitmaps = maps:put(Component, Bitmap, Bitmaps)}}.
@@ -113,7 +117,7 @@ call(acc_gyro, Bin, <<?RW_WRITE:1, Reg:7, Val/binary>>) ->
 call(mag, Bin, <<?RW_READ:1, ?MS_INCR:1, Reg:6, Val/binary>>) ->
     read(Bin, Reg, byte_size(Val));
 call(mag, Bin, <<?RW_READ:1, ?MS_SAME:1, Reg:6, Val/binary>>) ->
-    Result = bitmap_module:get_bytes(Bin, Reg, 1),
+    Result = bit_map_func(get_bytes, [Bin, Reg, 1]),
     {<<0, (binary:copy(Result, byte_size(Val)))/binary>>, Bin};
 call(mag, Bin, <<?RW_WRITE:1, ?MS_INCR:1, Reg:6, Val/binary>>) ->
     write(Bin, Reg, Val);
@@ -122,7 +126,7 @@ call(mag, Bin, <<?RW_WRITE:1, ?MS_SAME:1, Reg:6, Val/binary>>) ->
 call(alt, Bin, <<?RW_READ:1, ?MS_INCR:1, Reg:6, Val/binary>>) ->
     read(Bin, Reg, byte_size(Val));
 call(alt, Bin, <<?RW_READ:1, ?MS_SAME:1, Reg:6, Val/binary>>) ->
-    Result = bitmap_module:get_bytes(Bin, Reg, 1),
+    Result = bit_map_func(get_bytes, [Bin, Reg, 1]),
     {<<0, (binary:copy(Result, byte_size(Val)))/binary>>, Bin};
 call(alt, Bin, <<?RW_WRITE:1, ?MS_INCR:1, Reg:6, Val/binary>>) ->
     write(Bin, Reg, Val);
@@ -130,11 +134,11 @@ call(alt, Bin, <<?RW_WRITE:1, ?MS_SAME:1, Reg:6, Val/binary>>) ->
     write(Bin, Reg, binary:last(Val)).
 
 read(Bin, Reg, Length) ->
-    Result = bitmap_module:get_bytes(Bin, Reg, Length),
+    Result = bit_map_func(get_bytes, [Bin, Reg, Length]),
     {<<0, Result/binary>>, Bin}.
 
 write(Bin, Reg, Value) ->
-    NewBin = bitmap_module:set_bytes(Bin, Reg, Value),
+    NewBin = bit_map_func(set_bytes, [Bin, Reg, Value]),
     {<<0, (binary:copy(<<0>>, byte_size(Value)))/binary>>, NewBin}.
 
 value(output_1) -> 1;
@@ -142,11 +146,11 @@ value(periph_c) -> 2;
 value(_)        -> undefined.
 
 shake(acc_gyro, Bin) ->
-    case bitmap_module:get_bytes(Bin, 16#20, 1) of
+    case bit_map_func(get_bytes, [Bin, 16#20, 1]) of
         <<2#000:3, _:5>> -> % ODR in power-down mode
             Bin;
         _ ->
-            bitmap_module:set_bytes(Bin, 16#28, crypto:strong_rand_bytes(6))
+            bit_map_func(set_bytes, [Bin, 16#28, crypto:strong_rand_bytes(6)])
     end.
 
 default_acc_gyro() ->

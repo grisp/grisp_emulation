@@ -40,17 +40,17 @@ init() -> default().
 
 message(State, {spi, ?SPI_MODE, <<?RW_READ:1, ?MS_INCR:1, Reg:6, RespBytes/binary>>}) ->
     NewState = rotate(State),
-    Result = bitmap_module:get_bytes(NewState, Reg, byte_size(RespBytes)),
+    Result = bit_map_func(get_bytes, [NewState, Reg, byte_size(RespBytes)]),
     {<<0, Result/binary>>, NewState};
 message(State, {spi, ?SPI_MODE, <<?RW_READ:1, ?MS_SAME:1, Reg:6, RespBytes/binary>>}) ->
     {Result, NewState} = lists:foldl(fun(_, {R, S}) ->
         NewS = rotate(S),
-        IR = bitmap_module:get_bytes(NewS, Reg, 1),
+        IR = bit_map_func(get_bytes, [NewS, Reg, 1]),
         {<<R/binary, IR/binary>>, NewS}
     end, {<<>>, State}, lists:seq(1, byte_size(RespBytes))),
     {<<0, Result/binary>>, NewState};
 message(State, {spi, ?SPI_MODE, <<?RW_WRITE:1, ?MS_INCR:1, Reg:6, Value/binary>>}) ->
-    NewState = bitmap_module:set_bytes(State, Reg, Value),
+    NewState = bit_map_func(set_bytes, [State, Reg, Value]),
     {<<0, 0:(bit_size(Value))>>, NewState}.
 
 broadcast(State, _Message) ->
@@ -58,11 +58,15 @@ broadcast(State, _Message) ->
 
 %--- Internal ------------------------------------------------------------------
 
+bit_map_func(Fun, Args) ->
+  BitMapModule = application:get_env(grisp_emu, bitmap_module, []),
+  apply(BitMapModule, Fun, Args).
+
 rotate(State) ->
-    case bitmap_module:get_bytes(State, ?CTRL_REG1, 1) of
+    case bit_map_func(get_bytes, [State, ?CTRL_REG1, 1]) of
         <<_:4, ?PD_NORMAL:1, _:3>> ->
             lists:foldl(fun({Reg, Len}, S) ->
-                bitmap_module:set_bytes(S, Reg, crypto:strong_rand_bytes(Len))
+                bit_map_func(set_bytes, [S, Reg, crypto:strong_rand_bytes(Len)])
             end, State, [
                 {?OUT_TEMP, 1},
                 {?OUT_X_L, 6}
