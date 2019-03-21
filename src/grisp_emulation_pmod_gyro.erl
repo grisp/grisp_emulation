@@ -1,4 +1,4 @@
--module(pmod_gyro_emu).
+-module(grisp_emulation_pmod_gyro).
 
 -include("src/pmod_gyro.hrl").
 

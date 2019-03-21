@@ -1,4 +1,4 @@
--module(grisp_device_emu).
+-module(grisp_emulation_device).
 
 -behavior(gen_server).
 
@@ -55,5 +55,5 @@ terminate(_Reason, _State) -> ok.
 init_emulator({Slot, Driver}) ->
     init_emulator({Slot, Driver, #{}});
 init_emulator({Slot, Driver, _Opts}) ->
-    Emu = list_to_atom(atom_to_list(Driver) ++ "_emu"),
+    Emu = list_to_atom("grisp_emulation_" ++ atom_to_list(Driver)),
     {Slot, {Emu, Emu:init()}}.

@@ -1,4 +1,4 @@
--module(pmod_nav_emu).
+-module(grisp_emulation_pmod_nav).
 
 -include("src/pmod_nav.hrl").
 

@@ -1,4 +1,4 @@
-grisp_emu
+grisp_emulation
 =====
 
 An OTP library

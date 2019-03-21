@@ -1,4 +1,4 @@
--module(grisp_emu).
+-module(grisp_emulation).
 
 %% API exports
 -export([]).

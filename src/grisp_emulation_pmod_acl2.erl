@@ -1,4 +1,4 @@
--module(pmod_acl2_emu).
+-module(grisp_emulation_pmod_acl2).
 
 -include("src/pmod_acl2.hrl").
 

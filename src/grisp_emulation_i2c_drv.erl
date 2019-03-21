@@ -1,4 +1,4 @@
--module(grisp_i2c_drv_emu).
+-module(grisp_emulation_i2c_drv).
 
 % API
 -export([open/0]).
@@ -10,5 +10,5 @@ open() -> undefined.
 
 % FIXME: Placeholder API
 command(undefined, Things) ->
-    grisp_device_emu:broadcast({i2c, Things}),
+    grisp_emulation_device:broadcast({i2c, Things}),
     <<0>>.
