@@ -55,5 +55,5 @@ terminate(_Reason, _State) -> ok.
 init_emulator({Slot, Driver}) ->
     init_emulator({Slot, Driver, #{}});
 init_emulator({Slot, Driver, _Opts}) ->
-    Emu = list_to_atom(atom_to_list(Driver) ++ "_emu"),
+    Emu = list_to_atom("grisp_emulation" ++ atom_to_list(Driver)),
     {Slot, {Emu, Emu:init()}}.
