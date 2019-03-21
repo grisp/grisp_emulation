@@ -1,4 +1,4 @@
-{application, grisp_emu,
+{application, grisp_emulation,
  [{description, "An OTP library"},
   {vsn, "0.1.0"},
   {registered, []},

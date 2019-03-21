@@ -1,4 +1,4 @@
--module(grisp_device_emu).
+-module(grisp_emulation_device).
 
 -behavior(gen_server).
 

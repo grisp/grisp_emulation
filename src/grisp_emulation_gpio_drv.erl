@@ -1,4 +1,4 @@
--module(grisp_gpio_drv_emu).
+-module(grisp_emulation_gpio_drv).
 
 % API
 -export([open/0]).
@@ -12,9 +12,9 @@ open() -> undefined.
 command(_State, <<Pin, Command>>) when Pin >= 8 andalso Pin =< 13 ->
     led(index(Pin), command(Command));
 command(_State, <<Pin, Command>>) ->
-    grisp_device_emu:broadcast({gpio, index(Pin), command(Command)});
+    grisp_emulation_device:broadcast({gpio, index(Pin), command(Command)});
 command(_State, <<Pin, Command, Type, Attr>>) ->
-    grisp_device_emu:broadcast({gpio, index(Pin), {command(Command), type(Type), attr(Attr)}}).
+    grisp_emulation_device:broadcast({gpio, index(Pin), {command(Command), type(Type), attr(Attr)}}).
 
 %--- Internal ------------------------------------------------------------------
 
