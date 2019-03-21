@@ -1,6 +1,6 @@
 -module(grisp_emulation_pmod_gyro).
 
--include("src/pmod_gyro.hrl").
+-include("pmod_gyro.hrl").
 
 % Callbacks
 -export([init/0]).

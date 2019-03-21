@@ -1,6 +1,6 @@
 -module(grisp_emulation_pmod_acl2).
 
--include("src/pmod_acl2.hrl").
+-include("pmod_acl2.hrl").
 
 % Callbacks
 -export([init/0]).
