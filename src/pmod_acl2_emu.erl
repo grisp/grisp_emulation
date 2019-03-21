@@ -1,52 +1,11 @@
 -module(pmod_acl2_emu).
 
+-include("../src/pmod_acl2.hrl").
+
 % Callbacks
 -export([init/0]).
 -export([message/2]).
 -export([broadcast/2]).
-
-%--- Commands ------------------------------------------------------------------
-
--define(WRITE_REGISTER,   16#0A).
--define(READ_REGISTER,    16#0B).
--define(READ_FIFO,        16#0D).
-
-%--- Registers -----------------------------------------------------------------
-
--define(DEVID_AD,         16#00).
--define(DEVID_MST,        16#01).
--define(PARTID,           16#02).
-
--define(XDATA,            16#08).
--define(YDATA,            16#09).
--define(ZDATA,            16#0A).
-
--define(XDATA_L,          16#0E).
--define(XDATA_H,          16#0F).
--define(YDATA_L,          16#10).
--define(YDATA_H,          16#11).
--define(ZDATA_L,          16#12).
--define(ZDATA_H,          16#13).
-
--define(SOFT_RESET,       16#1F).
--define(POWER_CTL,        16#2D).
--define(SELF_TEST,        16#2E).
-
-%--- Bit Descriptions ----------------------------------------------------------
-
-% POWER_CTL
--define(STANDBY,          2#00).
--define(MEASUREMENT_MODE, 2#10).
-
-% DEVID_AD
--define(AD_DEVID,         16#AD).
-
-% DEVID_MST
--define(AD_MEMS_DEVID,    16#1D).
-
-% PARTID
--define(DEVID,            16#F2).
-
 
 -define(SPI_MODE, #{cpol := low, cpha := leading}).
 
@@ -56,11 +15,11 @@ init() -> default().
 
 message(State, {spi, ?SPI_MODE, <<?WRITE_REGISTER, Reg, Value>>})
   when Reg >= ?SOFT_RESET andalso Reg =< ?SELF_TEST ->
-    NewState = bit_map_func(set_bits, [State, Reg*8, <<Value>>]),
+    NewState = grisp_bitmap:set_bits(State, Reg*8, <<Value>>),
     {<<0, 0, 0>>, NewState};
 message(State, {spi, ?SPI_MODE, <<?READ_REGISTER, Reg, RespBytes/binary>>}) ->
     NewState = shake(State),
-    Result = bit_map_func(get_bits, [NewState, Reg*8, bit_size(RespBytes)]),
+    Result = grisp_bitmap:get_bits(NewState, Reg*8, bit_size(RespBytes)),
     {<<0, 0, Result/binary>>, NewState};
 message(State, {spi, ?SPI_MODE, _Command}) ->
     {<<0, 0, 0>>, State}.
@@ -70,12 +29,8 @@ broadcast(State, _Message) ->
 
 %--- Internal ------------------------------------------------------------------
 
-bit_map_func(Fun, Args) ->
-  BitMapModule = application:get_env(grisp_emu, bitmap_module, []),
-  apply(BitMapModule, Fun, Args).
-
 shake(State) ->
-    case bit_map_func(get_bits, [State, ?POWER_CTL*8, 8]) of
+    case grisp_bitmap:get_bits(State, ?POWER_CTL*8, 8) of
         <<_:6, ?MEASUREMENT_MODE:2>> ->
             lists:foldl(fun({ShortReg, LongReg}, S) ->
                 shake_axis(S, ShortReg, LongReg)
@@ -90,9 +45,9 @@ shake(State) ->
 
 shake_axis(State, ShortReg, LongReg) ->
     <<Low, High>> = Long = axis_data_12bit(),
-    Short = bit_map_func(get_bits, [<<High, Low>>, 4, 8])
-    NewState = bit_map_func(set_bits, [State, ShortReg*8, Short]),
-    bit_map_func(set_bits, [NewState, LongReg*8, Long]).
+    Short = grisp_bitmap:get_bits(<<High, Low>>, 4, 8),
+    NewState = grisp_bitmap:set_bits(State, ShortReg*8, Short),
+    grisp_bitmap:set_bits(NewState, LongReg*8, Long).
 
 axis_data_12bit() ->
     <<MSB:1, High:3, Low:8, _:4>> = crypto:strong_rand_bytes(2),

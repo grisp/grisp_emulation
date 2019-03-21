@@ -1,36 +1,11 @@
 -module(pmod_gyro_emu).
 
+-include("../src/pmod_gyro.hrl").
+
 % Callbacks
 -export([init/0]).
 -export([message/2]).
 -export([broadcast/2]).
-
-%--- Commands ------------------------------------------------------------------
-
--define(RW_WRITE,         2#0).
--define(RW_READ,          2#1).
-
--define(MS_SAME,          2#0).
--define(MS_INCR,          2#1).
-
-%--- Registers -----------------------------------------------------------------
-
--define(WHO_AM_I,         16#0F).
--define(CTRL_REG1,        16#20).
--define(OUT_TEMP,         16#26).
--define(OUT_X_L,          16#28).
-
-%--- Bit Descriptions ----------------------------------------------------------
-
-% WHO_AM_I
--define(DEVID,            2#11010011).
-
-% CTRL_REG1
--define(PD_POWER_DOWN,    2#0).
--define(PD_NORMAL,        2#1).
--define(Zen_ENABLED,      2#1).
--define(Yen_ENABLED,      2#1).
--define(Xen_ENABLED,      2#1).
 
 -define(SPI_MODE, #{cpol := high, cpha := trailing}).
 
@@ -40,17 +15,17 @@ init() -> default().
 
 message(State, {spi, ?SPI_MODE, <<?RW_READ:1, ?MS_INCR:1, Reg:6, RespBytes/binary>>}) ->
     NewState = rotate(State),
-    Result = bit_map_func(get_bytes, [NewState, Reg, byte_size(RespBytes)]),
+    Result = grisp_bitmap:get_bytes(NewState, Reg, byte_size(RespBytes)),
     {<<0, Result/binary>>, NewState};
 message(State, {spi, ?SPI_MODE, <<?RW_READ:1, ?MS_SAME:1, Reg:6, RespBytes/binary>>}) ->
     {Result, NewState} = lists:foldl(fun(_, {R, S}) ->
         NewS = rotate(S),
-        IR = bit_map_func(get_bytes, [NewS, Reg, 1]),
+        IR = grisp_bitmap:get_bytes(NewS, Reg, 1),
         {<<R/binary, IR/binary>>, NewS}
     end, {<<>>, State}, lists:seq(1, byte_size(RespBytes))),
     {<<0, Result/binary>>, NewState};
 message(State, {spi, ?SPI_MODE, <<?RW_WRITE:1, ?MS_INCR:1, Reg:6, Value/binary>>}) ->
-    NewState = bit_map_func(set_bytes, [State, Reg, Value]),
+    NewState = grisp_bitmap:set_bytes(State, Reg, Value),
     {<<0, 0:(bit_size(Value))>>, NewState}.
 
 broadcast(State, _Message) ->
@@ -58,15 +33,11 @@ broadcast(State, _Message) ->
 
 %--- Internal ------------------------------------------------------------------
 
-bit_map_func(Fun, Args) ->
-  BitMapModule = application:get_env(grisp_emu, bitmap_module, []),
-  apply(BitMapModule, Fun, Args).
-
 rotate(State) ->
-    case bit_map_func(get_bytes, [State, ?CTRL_REG1, 1]) of
+    case grisp_bitmap:get_bytes(State, ?CTRL_REG1, 1) of
         <<_:4, ?PD_NORMAL:1, _:3>> ->
             lists:foldl(fun({Reg, Len}, S) ->
-                bit_map_func(set_bytes, [S, Reg, crypto:strong_rand_bytes(Len)])
+                grisp_bitmap:set_bytes(S, Reg, crypto:strong_rand_bytes(Len))
             end, State, [
                 {?OUT_TEMP, 1},
                 {?OUT_X_L, 6}

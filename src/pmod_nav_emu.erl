@@ -1,35 +1,11 @@
 -module(pmod_nav_emu).
 
+-include("../src/pmod_nav.hrl").
+
 % Callbacks
 -export([init/0]).
 -export([message/2]).
 -export([broadcast/2]).
-
-%--- Commands ------------------------------------------------------------------
-
--define(RW_WRITE,         2#0).
--define(RW_READ,          2#1).
-
--define(MS_SAME,          2#0).
--define(MS_INCR,          2#1).
-
-%=== Accelerometer / Gyroscope =================================================
-
-%--- Bit Descriptions ----------------------------------------------------------
-
--define(ACC_WHO_AM_I_DEFAULT, 2#01101000).
-
-%=== Magnetometer ==============================================================
-
-%--- Bit Descriptions ----------------------------------------------------------
-
--define(MAG_WHO_AM_I_DEFAULT, 2#00111101).
-
-%=== Altimeter =================================================================
-
-%--- Bit Descriptions ----------------------------------------------------------
-
--define(ALT_WHO_AM_I_DEFAULT, 2#10111101).
 
 -define(SPI_MODE, #{cpol := high, cpha := trailing}).
 
@@ -102,10 +78,6 @@ broadcast(State, {gpio, jumper_5, get}) ->
 
 %--- Internal ------------------------------------------------------------------
 
-bit_map_func(Fun, Args) ->
-  BitMapModule = application:get_env(grisp_emu, bitmap_module, []),
-  apply(BitMapModule, Fun, Args).
-
 component(#state{bitmaps = Bitmaps} = State, Component, Req) ->
     {Result, Bitmap} = call(Component, maps:get(Component, Bitmaps), Req),
     {Result, State#state{bitmaps = maps:put(Component, Bitmap, Bitmaps)}}.
@@ -117,7 +89,7 @@ call(acc_gyro, Bin, <<?RW_WRITE:1, Reg:7, Val/binary>>) ->
 call(mag, Bin, <<?RW_READ:1, ?MS_INCR:1, Reg:6, Val/binary>>) ->
     read(Bin, Reg, byte_size(Val));
 call(mag, Bin, <<?RW_READ:1, ?MS_SAME:1, Reg:6, Val/binary>>) ->
-    Result = bit_map_func(get_bytes, [Bin, Reg, 1]),
+    Result = grisp_bitmap:get_bytes(Bin, Reg, 1),
     {<<0, (binary:copy(Result, byte_size(Val)))/binary>>, Bin};
 call(mag, Bin, <<?RW_WRITE:1, ?MS_INCR:1, Reg:6, Val/binary>>) ->
     write(Bin, Reg, Val);
@@ -126,7 +98,7 @@ call(mag, Bin, <<?RW_WRITE:1, ?MS_SAME:1, Reg:6, Val/binary>>) ->
 call(alt, Bin, <<?RW_READ:1, ?MS_INCR:1, Reg:6, Val/binary>>) ->
     read(Bin, Reg, byte_size(Val));
 call(alt, Bin, <<?RW_READ:1, ?MS_SAME:1, Reg:6, Val/binary>>) ->
-    Result = bit_map_func(get_bytes, [Bin, Reg, 1]),
+    Result = grisp_bitmap:get_bytes(Bin, Reg, 1),
     {<<0, (binary:copy(Result, byte_size(Val)))/binary>>, Bin};
 call(alt, Bin, <<?RW_WRITE:1, ?MS_INCR:1, Reg:6, Val/binary>>) ->
     write(Bin, Reg, Val);
@@ -134,11 +106,11 @@ call(alt, Bin, <<?RW_WRITE:1, ?MS_SAME:1, Reg:6, Val/binary>>) ->
     write(Bin, Reg, binary:last(Val)).
 
 read(Bin, Reg, Length) ->
-    Result = bit_map_func(get_bytes, [Bin, Reg, Length]),
+    Result = grisp_bitmap:get_bytes(Bin, Reg, Length),
     {<<0, Result/binary>>, Bin}.
 
 write(Bin, Reg, Value) ->
-    NewBin = bit_map_func(set_bytes, [Bin, Reg, Value]),
+    NewBin = grisp_bitmap:set_bytes(Bin, Reg, Value),
     {<<0, (binary:copy(<<0>>, byte_size(Value)))/binary>>, NewBin}.
 
 value(output_1) -> 1;
@@ -146,11 +118,11 @@ value(periph_c) -> 2;
 value(_)        -> undefined.
 
 shake(acc_gyro, Bin) ->
-    case bit_map_func(get_bytes, [Bin, 16#20, 1]) of
+    case grisp_bitmap:get_bytes(Bin, 16#20, 1) of
         <<2#000:3, _:5>> -> % ODR in power-down mode
             Bin;
         _ ->
-            bit_map_func(set_bytes, [Bin, 16#28, crypto:strong_rand_bytes(6)])
+            grisp_bitmap:set_bytes(Bin, 16#28, crypto:strong_rand_bytes(6))
     end.
 
 default_acc_gyro() ->

@@ -28,7 +28,7 @@ broadcast(Message) ->
 %--- Callbacks -----------------------------------------------------------------
 
 init(undefined) ->
-    Devices = application:get_env(grisp_emu, devices, []),
+    Devices = application:get_env(grisp, devices, []),
     {ok, [init_emulator(Device) || Device <- Devices]}.
 
 handle_call({message, Slot, Message}, _From, State) when is_atom(Slot) ->
