@@ -1,6 +1,6 @@
 -module(grisp_emulation_pmod_nav).
 
--include("pmod_nav.hrl").
+-include("grisp_emulation_pmod_nav.hrl").
 
 % Callbacks
 -export([init/0]).
