@@ -1,6 +1,6 @@
 -module(pmod_gyro_emu).
 
--include("../src/pmod_gyro.hrl").
+-include("src/pmod_gyro.hrl").
 
 % Callbacks
 -export([init/0]).

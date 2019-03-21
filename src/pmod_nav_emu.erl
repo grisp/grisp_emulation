@@ -1,6 +1,6 @@
 -module(pmod_nav_emu).
 
--include("../src/pmod_nav.hrl").
+-include("src/pmod_nav.hrl").
 
 % Callbacks
 -export([init/0]).

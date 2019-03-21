@@ -1,6 +1,6 @@
 -module(pmod_acl2_emu).
 
--include("../src/pmod_acl2.hrl").
+-include("src/pmod_acl2.hrl").
 
 % Callbacks
 -export([init/0]).
