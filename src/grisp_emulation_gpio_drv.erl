@@ -27,6 +27,14 @@ uppercase(Atom) when is_atom(Atom) ->
 uppercase(String) ->
     string:to_upper(String).
 
+index(0) -> gpio1_1;
+index(1) -> gpio1_2;
+index(2) -> gpio1_3;
+index(3) -> gpio1_4;
+index(4) -> gpio2_1;
+index(5) -> gpio2_2;
+index(6) -> gpio2_3;
+index(7) -> gpio2_4;
 index(8) -> led1_r;
 index(9) -> led1_g;
 index(10) -> led1_b;
@@ -38,9 +46,16 @@ index(15) -> jumper_2;
 index(16) -> jumper_3;
 index(17) -> jumper_4;
 index(18) -> jumper_5;
-index(19) -> spi1_pin9;
-index(20) -> spi1_pin10;
-index(21) -> ss1.
+index(19) -> spi1_pin7;
+index(20) -> spi1_pin8;
+index(21) -> spi1_pin9;
+index(22) -> spi1_pin10;
+index(23) -> ss1;
+index(24) -> ss2;
+index(25) -> uart_1_cts;
+index(26) -> uart_2_txd;
+index(27) -> uart_3_rxd;
+index(28) -> uart_4_rts.
 
 type(0) -> periph_a;
 type(1) -> periph_b;
