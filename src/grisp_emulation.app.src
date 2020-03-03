@@ -1,14 +1,13 @@
-{application, grisp_emulation,
- [{description, "An OTP library"},
-  {vsn, "0.1.1"},
-  {registered, []},
-  {applications,
-   [kernel,
-    stdlib
-   ]},
-  {env,[]},
-  {modules, []},
-
-  {licenses, ["Apache 2.0"]},
-  {links, []}
- ]}.
+{application, grisp_emulation, [
+    {description, "Hardware emulation layer for the GRiSP runtime"},
+    {vsn, "0.1.1"},
+    {registered, []},
+    {applications, [
+        kernel,
+        stdlib
+    ]},
+    {env,[]},
+    {modules, []},
+    {licenses, ["Apache 2.0"]},
+    {links, []}
+]}.
