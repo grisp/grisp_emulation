@@ -8,6 +8,10 @@
     ]},
     {env,[]},
     {modules, []},
+
     {licenses, ["Apache 2.0"]},
-    {links, []}
+    {links, [
+        {"Homepage", "https://www.grisp.org"},
+        {"GitHub", "https://github.com/grisp/grisp_emulation"}
+    ]}
 ]}.
