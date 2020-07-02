@@ -7,7 +7,7 @@
 -export([message/2]).
 -export([broadcast/2]).
 
--define(SPI_MODE, #{cpol := high, cpha := trailing}).
+-define(SPI_MODE, #{cpha := leading, cpol := low}).
 
 %--- Callbacks -----------------------------------------------------------------
 
@@ -24,7 +24,7 @@ message(State, {spi, ?SPI_MODE, <<?RW_READ:1, ?MS_SAME:1, Reg:6, RespBytes/binar
         {<<R/binary, IR/binary>>, NewS}
     end, {<<>>, State}, lists:seq(1, byte_size(RespBytes))),
     {<<0, Result/binary>>, NewState};
-message(State, {spi, ?SPI_MODE, <<?RW_WRITE:1, ?MS_INCR:1, Reg:6, Value/binary>>}) ->
+message(State, {spi, ?SPI_MODE, <<?RW_WRITE:1, ?MS_SAME:1, Reg:6, Value/binary>>}) ->
     NewState = grisp_bitmap:set_bytes(State, Reg, Value),
     {<<0, 0:(bit_size(Value))>>, NewState}.
 
