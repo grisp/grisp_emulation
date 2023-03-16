@@ -22,6 +22,7 @@ ioctl_nif(State, CS, Mode, Msg) ->
 
 %--- Internal ------------------------------------------------------------------
 
+% FIXME: We probably don't handle custom pins like {gpio, Pin} here!
 slot(0) -> spi1;
 slot(1) -> spi2;
 slot(2) -> spi2;

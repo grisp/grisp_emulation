@@ -81,6 +81,9 @@ message(State, {spi, CS, ?SPI_MODE, <<Req, Value/binary>>}) ->
 %--- Internal ------------------------------------------------------------------
 
 component(#state{bitmaps = Bitmaps} = State, Component, Req) ->
+    % FIMXE: This code should check for chip select GPIO pin states before
+    % talking to the actual chips. It should call grisp_gpio directly to do
+    % this.
     {Result, Bitmap} = call(Component, maps:get(Component, Bitmaps), Req),
     {Result, State#state{bitmaps = maps:put(Component, Bitmap, Bitmaps)}}.
 
