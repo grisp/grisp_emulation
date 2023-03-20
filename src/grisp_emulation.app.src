@@ -2,6 +2,7 @@
     {description, "Hardware emulation layer for the GRiSP runtime"},
     {vsn, "0.1.2"},
     {registered, []},
+    {mod, {grisp_emulation, []}},
     {applications, [
         kernel,
         stdlib

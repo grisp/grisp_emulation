@@ -1,13 +1,15 @@
 -module(grisp_emulation_pmod_nav).
 
+-compile([export_all]).
+
 -include("grisp_emulation_pmod_nav.hrl").
 
 % Callbacks
 -export([init/0]).
 -export([message/2]).
--export([broadcast/2]).
+% -export([broadcast/2]).
 
--define(SPI_MODE, #{cpol := high, cpha := trailing}).
+-define(SPI_MODE, #{clock := {high, trailing}}).
 
 -define(ACC(State), State#state.pins =:= #{
     ss1        => {periph_c, 2},
@@ -31,8 +33,8 @@
 -record(state, {
     pins = #{
         ss1        => {periph_c, 2},
-        spi1_pin9  => {input_1, 1},
-        spi1_pin10 => {input_1, 1}
+        spi1_pin9  => {output_1, 1},
+        spi1_pin10 => {output_1, 1}
     },
     bitmaps = #{
         acc_gyro => default_acc_gyro(),
@@ -45,40 +47,43 @@
 
 init() -> #state{}.
 
-message(State, {spi, ?SPI_MODE, <<16#FF>>}) when ?ACC(State) ->
+message(State, {spi, 1, ?SPI_MODE, <<16#FF>>}) ->
     {<<16#FF>>, State}; % Initial bogus SPI read to set clock line high
-message(State, {spi, ?SPI_MODE, Req}) when ?ACC(State) ->
+message(State, {spi, 1, ?SPI_MODE, Req}) ->
     component(State, acc_gyro, Req);
-message(State, {spi, ?SPI_MODE, Req}) when ?MAG(State) ->
+message(State, {spi, 2, ?SPI_MODE, Req}) ->
     component(State, mag, Req);
-message(State, {spi, ?SPI_MODE, Req}) when ?ALT(State) ->
+message(State, {spi, 3, ?SPI_MODE, Req}) ->
     component(State, alt, Req);
-message(State, {spi, ?SPI_MODE, <<Req, Value/binary>>}) ->
+message(State, {spi, CS, ?SPI_MODE, <<Req, Value/binary>>}) ->
     error({unknown_spi_request, State, Req, Value}).
 
-broadcast(#state{pins = Pins} = State, {gpio, Pin, {configure, Mode, _}}) when ?PIN(Pin) ->
-    State#state{pins = maps:update(Pin, {Mode, value(Mode)}, Pins)};
-broadcast(#state{pins = Pins} = State, {gpio, Pin, clear}) ->
-    NewPins = maps:update_with(Pin, fun({Mode, _}) -> {Mode, 0} end, Pins),
-    State#state{pins = NewPins};
-broadcast(#state{pins = Pins} = State, {gpio, Pin, set}) ->
-    NewPins = maps:update_with(Pin, fun({Mode, _}) -> {Mode, 1} end, Pins),
-    State#state{pins = NewPins};
-% FIXME: Remove specific pins and add catchall clause in the end
-broadcast(State, {gpio, jumper_1, get}) ->
-    State;
-broadcast(State, {gpio, jumper_2, get}) ->
-    State;
-broadcast(State, {gpio, jumper_3, get}) ->
-    State;
-broadcast(State, {gpio, jumper_4, get}) ->
-    State;
-broadcast(State, {gpio, jumper_5, get}) ->
-    State.
+% broadcast(#state{pins = Pins} = State, {gpio, Pin, {configure, Mode, _}}) when ?PIN(Pin) ->
+%     State#state{pins = maps:update(Pin, {Mode, value(Mode)}, Pins)};
+% broadcast(#state{pins = Pins} = State, {gpio, Pin, clear}) ->
+%     NewPins = maps:update_with(Pin, fun({Mode, _}) -> {Mode, 0} end, Pins),
+%     State#state{pins = NewPins};
+% broadcast(#state{pins = Pins} = State, {gpio, Pin, set}) ->
+%     NewPins = maps:update_with(Pin, fun({Mode, _}) -> {Mode, 1} end, Pins),
+%     State#state{pins = NewPins};
+% % FIXME: Remove specific pins and add catchall clause in the end
+% broadcast(State, {gpio, jumper_1, get}) ->
+%     State;
+% broadcast(State, {gpio, jumper_2, get}) ->
+%     State;
+% broadcast(State, {gpio, jumper_3, get}) ->
+%     State;
+% broadcast(State, {gpio, jumper_4, get}) ->
+%     State;
+% broadcast(State, {gpio, jumper_5, get}) ->
+%     State.
 
 %--- Internal ------------------------------------------------------------------
 
 component(#state{bitmaps = Bitmaps} = State, Component, Req) ->
+    % FIMXE: This code should check for chip select GPIO pin states before
+    % talking to the actual chips. It should call grisp_gpio directly to do
+    % this.
     {Result, Bitmap} = call(Component, maps:get(Component, Bitmaps), Req),
     {Result, State#state{bitmaps = maps:put(Component, Bitmap, Bitmaps)}}.
 

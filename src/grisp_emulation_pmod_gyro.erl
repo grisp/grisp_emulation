@@ -5,31 +5,27 @@
 % Callbacks
 -export([init/0]).
 -export([message/2]).
--export([broadcast/2]).
 
--define(SPI_MODE, #{cpha := leading, cpol := low}).
+-define(SPI_MODE, #{clock := {low, leading}}).
 
 %--- Callbacks -----------------------------------------------------------------
 
 init() -> default().
 
-message(State, {spi, ?SPI_MODE, <<?RW_READ:1, ?MS_INCR:1, Reg:6, RespBytes/binary>>}) ->
+message(State, {spi, 0, ?SPI_MODE, <<?RW_READ:1, ?MS_INCR:1, Reg:6, RespBytes/binary>>}) ->
     NewState = rotate(State),
     Result = grisp_bitmap:get_bytes(NewState, Reg, byte_size(RespBytes)),
     {<<0, Result/binary>>, NewState};
-message(State, {spi, ?SPI_MODE, <<?RW_READ:1, ?MS_SAME:1, Reg:6, RespBytes/binary>>}) ->
+message(State, {spi, 0, ?SPI_MODE, <<?RW_READ:1, ?MS_SAME:1, Reg:6, RespBytes/binary>>}) ->
     {Result, NewState} = lists:foldl(fun(_, {R, S}) ->
         NewS = rotate(S),
         IR = grisp_bitmap:get_bytes(NewS, Reg, 1),
         {<<R/binary, IR/binary>>, NewS}
     end, {<<>>, State}, lists:seq(1, byte_size(RespBytes))),
     {<<0, Result/binary>>, NewState};
-message(State, {spi, ?SPI_MODE, <<?RW_WRITE:1, ?MS_SAME:1, Reg:6, Value/binary>>}) ->
+message(State, {spi, 0, ?SPI_MODE, <<?RW_WRITE:1, ?MS_SAME:1, Reg:6, Value/binary>>}) ->
     NewState = grisp_bitmap:set_bytes(State, Reg, Value),
     {<<0, 0:(bit_size(Value))>>, NewState}.
-
-broadcast(State, _Message) ->
-    State.
 
 %--- Internal ------------------------------------------------------------------
 
