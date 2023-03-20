@@ -8,6 +8,12 @@ and this project adheres to
 
 ## [Unreleased]
 
+## Changed
+
+- Completely new emulation's design and refactoring
+
+## Fixed
+
 ## [0.1.2] - 2020-07-02
 
 ### Fixed
