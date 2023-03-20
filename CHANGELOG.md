@@ -8,11 +8,15 @@ and this project adheres to
 
 ## [Unreleased]
 
-## Changed
+## [0.2.0] - 2023-03-20
 
-- Completely new emulation's design and refactoring
+### Added
 
-## Fixed
+- Add GRISP 2 support
+
+### Changed
+
+- New emulation's design and refactoring [grisp_emulation/#2](https://github.com/grisp/grisp_emulation/pull/2)
 
 ## [0.1.2] - 2020-07-02
 
@@ -33,10 +37,11 @@ and this project adheres to
 
 - Initial release
 
-[Unreleased]: https://github.com/grisp/grisp_emulation/compare/v0.1.2...HEAD
-[0.1.2]: https://github.com/grisp/grisp_emulation/compare/v0.1.1...v0.1.2
-[0.1.1]: https://github.com/grisp/grisp_emulation/releases/tag/v0.1.0...v0.1.1
-[0.1.0]: https://github.com/grisp/grisp_emulation/releases/tag/v0.1.0
+[Unreleased]: https://github.com/grisp/grisp_emulation/compare/0.2.0...HEAD
+[0.2.0]: https://github.com/grisp/grisp_emulation/compare/0.1.2...0.2.0
+[0.1.2]: https://github.com/grisp/grisp_emulation/compare/v0.1.1...0.1.2
+[0.1.1]: https://github.com/grisp/grisp_emulation/compare/v0.1.0...v0.1.1
+[0.1.0]: https://github.com/grisp/grisp_emulation/releases/v0.1.0
 
 [grisp/\#76]: https://github.com/grisp/grisp/issues/76
 [\#1]: https://github.com/grisp/grisp_emulation/pull/1
