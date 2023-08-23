@@ -32,7 +32,7 @@ gpio_open_nif(#{path := Path0, index := Index}, Mode) ->
     }),
     Pin.
 
-gpio_get_nif(Pin) -> ets:lookup_element(?MODULE, Pin, 3).
+gpio_get_nif(Pin) -> ets:lookup_element(?MODULE, Pin, 4).
 
 gpio_set_nif(Pin, Value) -> ets:update_element(?MODULE, Pin, {4, Value}).
 
