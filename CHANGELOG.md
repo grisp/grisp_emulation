@@ -8,6 +8,12 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [0.2.2] - 2024-06-29
+
+### Fixed
+
+- Fix race condition in EEPROM emulation
+
 ## [0.2.1] - 2024-06-29
 
 ### Added
@@ -47,8 +53,9 @@ and this project adheres to
 
 - Initial release
 
-[Unreleased]: https://github.com/grisp/grisp_emulation/compare/0.2.1...HEAD
-[0.2.1]: https://github.com/grisp/grisp_emulation/compare/0.2.0...0.1.2
+[Unreleased]: https://github.com/grisp/grisp_emulation/compare/0.2.2...HEAD
+[0.2.2]: https://github.com/grisp/grisp_emulation/compare/0.2.1...0.2.2
+[0.2.1]: https://github.com/grisp/grisp_emulation/compare/0.2.0...0.2.1
 [0.2.0]: https://github.com/grisp/grisp_emulation/compare/0.1.2...0.2.0
 [0.1.2]: https://github.com/grisp/grisp_emulation/compare/v0.1.1...0.1.2
 [0.1.1]: https://github.com/grisp/grisp_emulation/compare/v0.1.0...v0.1.1

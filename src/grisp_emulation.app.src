@@ -1,6 +1,6 @@
 {application, grisp_emulation, [
     {description, "Hardware emulation layer for the GRiSP runtime"},
-    {vsn, "0.2.1"},
+    {vsn, "0.2.2"},
     {registered, []},
     {mod, {grisp_emulation, []}},
     {applications, [
