@@ -35,18 +35,24 @@ eeprom_procname(Tag) ->
     list_to_atom("emulated_eeprom_" ++ atom_to_list(Tag)).
 
 eeprom_spawn(Tag) ->
+    Self = self(),
+    Ref = make_ref(),
     ProcName = eeprom_procname(Tag),
     case erlang:whereis(ProcName) of
         Pid when is_pid(Pid) -> Pid;
         undefined ->
-            erlang:spawn_link(fun() -> eeprom_proc_init(ProcName, Tag) end)
+            Pid = erlang:spawn_link(fun() ->
+                eeprom_proc_init(Self, Ref, ProcName, Tag)
+            end),
+            receive {started, Ref} -> Pid end
     end.
 
-eeprom_proc_init(ProcName, Tag) ->
+eeprom_proc_init(Owner, Ref, ProcName, Tag) ->
     Filename = io_lib:format("eeprom_~s.dat", [Tag]),
     {ok, File} = file:open(Filename, [read, write, raw, binary]),
     process_flag(trap_exit, true),
     erlang:register(ProcName, self()),
+    Owner ! {started, Ref},
     eeprom_proc_loop(File).
 
 eeprom_proc_loop(File) ->
