@@ -11,6 +11,7 @@ The emulation layer comes with a few different emulated Pmod drivers:
 * PmodACL2
 * PmodGYRO
 * PmodNAV
+* MaxSonar
 
 The emulated drivers are in various states of development, ranging from just
 barely starting to a semi-full emulated state of hardware components.
