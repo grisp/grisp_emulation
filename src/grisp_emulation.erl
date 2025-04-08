@@ -29,6 +29,12 @@ call(Platform, Module, on_load, []) ->
     end;
 call(Platform, grisp_hw, hw_platform_nif, []) ->
     Platform;
+call(Platform, port, open, [Module, Owner, {spawn_driver, Name}, Settings]) ->
+    Emu = list_to_atom("grisp_emulation_" ++ atom_to_list(Module)),
+    grisp_emulation_device:call(Emu, open, [Platform, Owner, Name, Settings]);
+call(Platform, port, command, [Module, Owner, Port, Command]) ->
+    Emu = list_to_atom("grisp_emulation_" ++ atom_to_list(Module)),
+    grisp_emulation_device:call(Emu, command, [Platform, Owner, Port, Command]);
 call(Platform, Module, Function, Args) ->
     apply(implementation(Platform, Module), Function, Args).
 

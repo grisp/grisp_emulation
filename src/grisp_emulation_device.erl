@@ -4,6 +4,7 @@
 
 % API
 -export([start_link/0]).
+-export([call/3]).
 -export([message/2]).
 -export([broadcast/1]).
 
@@ -19,6 +20,9 @@
 
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, undefined, []).
 
+call(Emu, FunName, Args) ->
+    gen_server:call(?MODULE, {call, Emu, FunName, Args}).
+
 message(Slot, Message) ->
     gen_server:call(?MODULE, {message, Slot, Message}).
 
@@ -31,6 +35,11 @@ init(undefined) ->
     Devices = application:get_env(grisp, devices, []),
     {ok, [init_emulator(Device) || Device <- Devices]}.
 
+handle_call({call, Emu, FunName, Args}, _From, State) when is_atom(Emu) ->
+    {value, {Slot, {Emu, SubState}}}
+        = lists:search(fun({_, {Mod, _}}) -> Mod =:= Emu end, State),
+    {Result, NewSubState} = apply(Emu, FunName, [SubState | Args]),
+    {reply, Result, lists:keyreplace(Slot, 1, State, {Slot, {Emu, NewSubState}})};
 handle_call({message, Slot, Message}, _From, State) when is_atom(Slot) ->
     {Emu, EmuState} = proplists:get_value(Slot, State),
     {Data, NewEmuState} = Emu:message(EmuState, Message),
